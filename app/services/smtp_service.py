@@ -25,7 +25,7 @@ def send_email(receiver_email: str, subject: str, body: str, tracking_id: str):
         # Email Body
         from app.services.template_service import render_email
         tracking_url = (
-            f"https://stumble-unroasted-headboard.ngrok-free.dev/track/{tracking_id}"
+            f"https://email-tracking-service-1.onrender.com/track/{tracking_id}"
         )
 
         html_body = render_email(tracking_url)
