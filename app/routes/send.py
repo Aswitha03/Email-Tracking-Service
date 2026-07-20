@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import Email
 from app.schemas import EmailCreate
-from app.services.smtp_service import send_email
+from app.services.gmail_service import send_email
+from app.services.template_service import render_email
 
 router = APIRouter()
 
@@ -15,6 +16,10 @@ router = APIRouter()
 def create_email(email: EmailCreate, db: Session = Depends(get_db)):
 
     tracking_id = str(uuid.uuid4())
+
+    tracking_url = f"https://email-tracking-service-1.onrender.com/track/{tracking_id}"
+
+    html_body = render_email(email.body, tracking_url)
 
     new_email = Email(
         tracking_id=tracking_id,
@@ -27,35 +32,28 @@ def create_email(email: EmailCreate, db: Session = Depends(get_db)):
     db.add(new_email)
     db.commit()
     db.refresh(new_email)
-    success = send_email(
-    receiver_email=email.recipient_email,
-    subject=email.subject,
-    body=email.body,
-    tracking_id=tracking_id
-)
-    if success:
+
+    try:
+
+        send_email(
+            receiver_email=email.recipient_email,
+            subject=email.subject,
+            html_body=html_body
+        )
+
         new_email.status = "sent"
-    else:
+
+    except Exception as e:
+
+        print(e)
+
         new_email.status = "failed"
 
     db.commit()
     db.refresh(new_email)
 
     return {
-    "message": "Email processed",
-    "status": new_email.status,
-    "tracking_id": tracking_id,
-}
-
-    return {
-        "message": "Email saved successfully",
-        "tracking_id": tracking_id,
-        "email_id": new_email.id
+        "message": "Email processed successfully",
+        "status": new_email.status,
+        "tracking_id": tracking_id
     }
-from typing import List
-@router.get("/emails")
-def get_all_emails(db: Session = Depends(get_db)):
-
-    emails = db.query(Email).all()
-
-    return emails
