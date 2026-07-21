@@ -57,3 +57,9 @@ def create_email(email: EmailCreate, db: Session = Depends(get_db)):
         "status": new_email.status,
         "tracking_id": tracking_id
     }
+@router.get("/emails")
+def get_all_emails(db: Session = Depends(get_db)):
+
+    emails = db.query(Email).all()
+
+    return emails
