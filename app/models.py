@@ -30,3 +30,11 @@ class Email(Base):
     sent_at = Column(DateTime, nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    # New: raw pixel-hit tracking, so opened/opened_at can be derived
+    # with a heuristic instead of trusting the very first hit.
+    pixel_hit_count = Column(Integer, default=0)
+
+    last_pixel_user_agent = Column(String, nullable=True)
+
+    first_pixel_hit_at = Column(DateTime, nullable=True)
